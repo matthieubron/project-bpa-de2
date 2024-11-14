@@ -1,11 +1,11 @@
-# Project BPA DE2 Clock
+# Project BPA DE2 : Clock
 
-Our clock project in Digital Electornics
+* [Part 1: Showing current time](#CurentTime)
 
 ### Team Members
 
 * BERMAN Noam (responsible for )
-* BRON Matthieu (responsible for )
+* BRON Matthieu (responsible for github)
 * CLOUARD Adam (responsible for )
 
 ### Hardware description
@@ -15,6 +15,7 @@ Our clock project in Digital Electornics
 * 4 Push button
 * 4 NeoPixel displays
 * Jumper wires
+* Temperature and humidity sensor
 
 ### Implementations
 
@@ -24,3 +25,12 @@ Our clock project in Digital Electornics
 * Timer
 * Temperature and humidity sensor
 * Time zones
+
+
+<a name="CurentTime"></a>
+
+## Showing curent time
+
+<a name="AlarmClock"></a>
+
+## Alarm clock
