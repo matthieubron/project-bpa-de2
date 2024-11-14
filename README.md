@@ -17,6 +17,7 @@
 * Timer
 * Temperature and humidity sensor
 * Time zones
+* Change Time color
 
 ### Hardware description
 
@@ -37,6 +38,8 @@
 
 ## Showing curent time
 
+
+
 <a name="AlarmClock"></a>
 
 ## Alarm clock
@@ -45,3 +48,7 @@
 
 
 ### References and tools
+
+* API current time request [timeapi.io](https://timeapi.io/api/time/current/zone?timeZone=Europe/Prague)
+* Use a dictionarry in Python [acces to elements](https://www.w3schools.com/python/python_dictionaries_access.asp) and [convert string into a dictionarry](https://www.geeksforgeeks.org/python-convert-string-dictionary-to-dictionary/)
+* Acces one specific char of a strig [computerscienced](https://computerscienced.co.uk/site/knowledge-base/how-do-i-get-the-first-letter-of-a-string-in-python/)
