@@ -29,9 +29,11 @@
 * Temperature and humidity sensor
 
 ### Software description
+Explain main functions of code
 
 ### Instructions and photos
-
+Schematic of the NeoPixel display
+![NeoPixel_schematic](Pictures/NeoPixel_schematics.svg)
 
 
 <a name="CurentTime"></a>
