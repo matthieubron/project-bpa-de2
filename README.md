@@ -32,7 +32,7 @@
 Explain main functions of code
 
 ### Instructions and photos
-Schematic of the NeoPixel display
+Schematic of the NeoPixel display, we set a dictionary
 ![NeoPixel_schematic](Pictures/NeoPixel_schematics.svg)
 
 

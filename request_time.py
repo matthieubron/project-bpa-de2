@@ -8,9 +8,12 @@ response = requests.get("https://timeapi.io/api/time/current/zone?timeZone=Europ
 # response = requests.get("https://timeapi.io/api/time/current/zone?timeZone=Asia/Taipei")    # Friend's local time
 #print(response.status_code)
 result = json.loads(response.text) # convert string request into a dictionarry
+print(result)
 
 hour = result.get("hour")
 minute = result.get("minute")
+second = result.get("seconds")
+print("secondesssssss", second)
 
 # test to avoid index out of range (we should make a function)
 
