@@ -13,32 +13,39 @@
 
 * Showing curent time
 * Alarm clock
-* Automatic night mode base on time
-* Timer
+* Light mode base on distance
+* Change Time color
 * Temperature and humidity sensor
 * Time zones
-* Change Time color
+* <em>Automatic night mode base on time</em>
+* <em>Timer</em>
 
 ### Hardware description
 
 * ESP32 board with pre-installed MicroPython firmware, USB cable
 * Breadboard
 * 4 Push button
+* 4 pull-up resistors
 * 4 NeoPixel displays
+* Proximity sensor
 * Jumper wires
 * Temperature and humidity sensor
 
 ### Software description
-Explain main functions of code
+<u>Include flowcharts of your algorithm(s) and direct links to the source files.Present the modules you used in the project</u>
+
+Flowshart of digital clock
+
+![Flow_chart_digital_clock](Pictures/flowchart_digital_clock.drawio.svg)
+
+* [Alarm Clock](#AlarmClock)
 
 ### Instructions and photos
 Wiring of digital clock
 
 ![schema_gpio](Pictures/schema_gpio.svg)
 
-Flowshart of digital clock
 
-![Flow_chart_digital_clock](Pictures/flowchart_digital_clock.drawio.svg)
 
 Schematic of the NeoPixel display, we set a dictionary
 
