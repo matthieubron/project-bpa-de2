@@ -11,7 +11,7 @@
 
 ### Implementations
 
-* Showing curent time
+* Showing current time
 * Alarm clock
 * Light mode base on distance
 * Change Time color
