@@ -24,8 +24,7 @@
 
 * ESP32 board with pre-installed MicroPython firmware, USB cable
 * Breadboard
-* 4 Push button
-* 4 pull-up resistors
+* 5 Push button
 * 4 NeoPixel displays
 * Proximity sensor
 * Jumper wires
@@ -36,16 +35,67 @@
 
 Flowshart of digital clock
 
+<u>je pense qu'il faut supprimer le flowchart, ou alors faire une machine à état avec des cercles </u>
+
 ![Flow_chart_digital_clock](Pictures/flowchart_digital_clock.drawio.svg)
 
-* [Alarm Clock](#AlarmClock)
+
+
+* [Display current time](#CurentTime) <u>link to py </u>
+* [Alarm Clock](#AlarmClock) <u>link to py </u>
+* [Light based on distance](#LightDistance) <u>link to py </u>
 
 ### Instructions and photos
 Wiring of digital clock
 
 ![schema_gpio](Pictures/schema_gpio.svg)
 
+Different states of the alarm clock
 
+
+| Button / Mode                 |   M (yellow)  |   L (white) |   A (red)                 |   B (green)       |   C (blue)           |
+| :----:                        | :----:        | :----:      | :----:                    | :----:            | :----:               | 
+| Display curent time           | Mode          | Light       |Stop alarm                 | Change time zone  | -                    |
+| Set Alarm                     | Mode          | Light       |Switch On/Off alarm        | Increase hours    | Increase minutes     |
+| Set Timer                     | Mode          | Light       |Start Timer                | Increase minutes  | Increase seconds     |
+| Display Trmperature & humidity| Mode          | Light       |Change temperature/humidity| -                 |      -               |  
+
+
+States are defined thanks to the function `state()`.
+```Python
+def state():
+    #Display curent Time
+    if (statemode() == 0):
+        print("mode 0")
+        #Display Time
+        display_time(hour,minute,color_index)
+        #change time zone
+        buttonB.irq(trigger = Pin.IRQ_FALLING, handler = lambda pin: handle_debounced(pin, convert_timezone))
+        # Switch on / off alarm
+        if (AlarmOn == True):
+            alarm(hour,minute)
+
+    #Set and display alarm time
+    elif (statemode() == 1): # Alarm
+        print("mode 1")
+        display_time(alarmH, alarmM, color_index)
+        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmH))
+        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmM))
+        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,alarm_on_off))
+
+    # Set and display timer
+    elif (statemode() == 2):
+        print("mode 2")
+        display_time(minute_timer, second_timer, color_index)
+        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_second))
+        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_minute))
+        #/!\ pas sûr pour de l'appel de fonction
+        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,toggle_timer))
+
+    elif (statemode() == 3):
+        print("mode 3")
+        # Je n'ai pas les fonctions
+```
 
 Schematic of the NeoPixel display, we set a dictionary
 
@@ -54,7 +104,7 @@ Schematic of the NeoPixel display, we set a dictionary
 
 <a name="CurentTime"></a>
 
-## Showing curent time
+## Display current time
 
 
 
@@ -62,6 +112,9 @@ Schematic of the NeoPixel display, we set a dictionary
 
 ## Alarm clock
 
+<a name="LightDistance"></a>
+
+## Change brightness according to distance
 
 
 
