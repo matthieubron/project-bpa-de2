@@ -488,7 +488,6 @@ def state():
     elif (statemode() == 3):
         print("mode 3")
         buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,display_change))
-        # Je n'ai pas les fonctions
         
         
 

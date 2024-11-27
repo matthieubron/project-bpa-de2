@@ -69,11 +69,12 @@ def state():
         print("mode 0")
         #Display Time
         display_time(hour,minute,color_index)
+        if (AlarmOn == True):
+            alarm(hour,minute)
         #change time zone
         buttonB.irq(trigger = Pin.IRQ_FALLING, handler = lambda pin: handle_debounced(pin, convert_timezone))
         # Switch on / off alarm
-        if (AlarmOn == True):
-            alarm(hour,minute)
+        
 
     #Set and display alarm time
     elif (statemode() == 1): # Alarm
@@ -94,7 +95,7 @@ def state():
 
     elif (statemode() == 3):
         print("mode 3")
-        # Je n'ai pas les fonctions
+        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,display_change))
 ```
 
 Schematic of the NeoPixel display, we set a dictionary
