@@ -1,7 +1,12 @@
 # Project BPA DE2 : Clock
 
-* [Part 1: Showing current time](#CurentTime)
-* [Part 2: Alarm Clock](#AlarmClock)
+![Clock](Pictures/Temperature_lightOn.jpg)
+*Picture of the clock showing ambiant temperature.*
+
+* [State 1: Showing current time](#CurentTime)
+* [State 2: Alarm Clock](#AlarmClock)
+* [State 3: Timer](#timer)
+* [State 4: Temperature & Humidity](#Temperature_humidity)
 
 ## Team Members
 
@@ -13,12 +18,11 @@
 
 * Showing current time
 * Alarm clock
-* Light mode base on distance
-* Change Time color
+* Light intensity base on distance
+* Change time color
 * Temperature and humidity sensor
 * Time zones
-* <em>Automatic night mode base on time</em>
-* <em>Timer</em>
+* Timer
 
 ## Hardware description
 For our ptoject, we used :
@@ -26,13 +30,20 @@ For our ptoject, we used :
 * Breadboard
 * 5 Push button
 * 4 NeoPixel displays
-* Proximity sensor
-* Temperature and humidity sensor
+* 1 Proximity sensor
+* 1 Temperature and humidity sensor (DHT12)
+* 1 Buzzer
 * Jumper wires
 
-Wiring of digital clock
+<b>Wiring of digital clock</b>
 
 ![schema_gpio](Pictures/schema_gpio.svg)
+
+
+
+
+
+
 
 ## Software description
 <u>Include flowcharts of your algorithm(s) and direct links to the source files.Present the modules you used in the project</u>
@@ -41,9 +52,9 @@ State machine of digital clock
 
 ![State_machine](Pictures/state_machine.svg)
 
-<u>Mettre les fonctions python de machine à état</u>
 
-
+<!-- Expliquer les fonctions état avec le graph d'état, dire que c'etait aussi pour optimiser le nombre de boutons...  -->
+<!-- <u>Mettre les fonctions python de machine à état</u> -->
 
 
 
@@ -51,32 +62,37 @@ State machine of digital clock
 <a name="CurentTime"></a>
 
 ### Display current time
-First we connect to wifi thanks to the method [`connect_wifi()`](samplesOfCode/connect_wifi.md) . the, we did an API request with the [`get_time()`](samplesOfCode/get_time.md) to get current local time.\
-To display numbers on NeoPixels, we created a <b>dictionarry</b>, connecting nunmbers and location of display's leds.\
+First we connect to wifi thanks to the method [`connect_wifi()`](samplesOfCode/connect_wifi.md). Then, we did an API request with [`get_time()`](samplesOfCode/get_time.md) to get current local time and save the result into variables.\
+To display numbers on NeoPixels, we created a <b>dictionarry</b>, connecting numbers and location of display's leds.\
 <img src="Pictures/NeoPixel_schematics.svg" width="50%" alt="NeoPixel Schematic">\
 *Schematic of one NeoPixel display used to set the dictionarry*\
 <br>
 We created the function [`display_time()`](samplesOfCode/display_time.md) who takes hour, minutes and the color we d'like to display.\
-To keep time accurate, we call [`update_time()`](samplesOfCode/update_time.md).
+To keep time accurate, each second, we call [`update_time()`](samplesOfCode/update_time.md).
+
 
 
 <a name="AlarmClock"></a>
 
 ### Alarm clock
-To have an alarm, we created global varaibles in our program : <b>alarm_h</b> and <b>alarm_m</b> which store value of the alarm time and <b>alarm_on</b>, a boolean which permit to enable or disable alarm.\
-Each seconds, we call the function [`Alarm()`](samplesOfCode/Alarm.md) which check if current time is equals to alarm time. If it's the case, the alarm starts to ring.
+We enter to "Alarm" mode, and to set the alarm, we created global varaibles: <b>alarm_h</b> and <b>alarm_m</b> which store value of the alarm time. We set this two variables thanks to buttonB and buttonC. There is also <b>alarm_on</b>, a boolean which allows to enable or disable alarm. Each seconds, we call the function [`Alarm(hour, minute)`](samplesOfCode/Alarm.md) which check if current time is equals to alarm time and if the alarm is enable. If it's the case, the alarm starts to ring.
 
 
 
 <a name="Timer"></a>
 
 ### Timer
+We enter to "Timer" mode and like the alarm, to set <b>minute_timer</b> and <b>second_timer</b> which are timer's variables, we click on buttonB and buttonC.
+Then, to start the timer, we click on buttonA. This action will call [`toggle_timer()`](samplesOfCode/toggle_timer.md) and [`timer()`](samplesOfCode/timer.md). We can pause the timer by clicking again on buttonA.
+
+
+
 
 <a name="Temperature_humidity"></a>
 
 ### Temperature and humidity
 
-
+In order to display temperature and humidity, we used a variable <b>display_mode</b> that control in which mode we are. When this variable is 0, the captor return the current temperature and we display it on the digital clock with the function [`display_change()`](samplesOfCode/) including the symbols °C. The same process happens for humidity when <b>display_mode</b> is equal to 1. You can switch between the 2 modes as you wish.
 
 
 
@@ -93,7 +109,7 @@ Each seconds, we call the function [`Alarm()`](samplesOfCode/Alarm.md) which che
 ## Instructions and photos
 
 
-Here is a table summing up use of buttons depending on the current state.\
+Here is a table summing up use of buttons depending on the current state.
 
 | Button / Mode                 |   M (yellow)  |   L (white) |   A (red)                 |   B (green)       |   C (blue)           |
 | :----:                        | :----:        | :----:      | :----:                    | :----:            | :----:               | 
@@ -103,44 +119,6 @@ Here is a table summing up use of buttons depending on the current state.\
 | Display Trmperature & humidity| Mode          | Light       |Change temperature/humidity| -                 |      -               |  
 
 
-
-
-States are defined thanks to the function `state()`.
-```Python
-def state():
-    #Display curent Time
-    if (statemode() == 0):
-        print("mode 0")
-        #Display Time
-        display_time(hour,minute,color_index)
-        if (AlarmOn == True):
-            alarm(hour,minute)
-        #change time zone
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler = lambda pin: handle_debounced(pin, convert_timezone))
-        # Switch on / off alarm
-        
-
-    #Set and display alarm time
-    elif (statemode() == 1): # Alarm
-        print("mode 1")
-        display_time(alarmH, alarmM, color_index)
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmH))
-        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmM))
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,alarm_on_off))
-
-    # Set and display timer
-    elif (statemode() == 2):
-        print("mode 2")
-        display_time(minute_timer, second_timer, color_index)
-        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_second))
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_minute))
-        #/!\ pas sûr pour de l'appel de fonction
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,toggle_timer))
-
-    elif (statemode() == 3):
-        print("mode 3")
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,display_change))
-```
 
 
 
