@@ -48,9 +48,9 @@ timer_sec =0
 minute_timer = 0
 second_timer = 0
 
-alarmH = 0
-alarmM = 0
-AlarmOn = False
+alarm_h = 0
+alarm_m = 0
+alarm_on = False
 
 temp_digits = []
 humidity_digits = []
@@ -318,25 +318,25 @@ def convert_timezone(pin):
     display_time(hour,minute,color_index)
 
 
-def increment_AlarmH(pin):
-    global alarmH,alarmM,color_index
-    alarmH = (alarmH+1)%24
-    display_time(alarmH,alarmM,color_index)
+def increment_alarm_h(pin):
+    global alarm_h,alarm_m,color_index
+    alarm_h = (alarm_h+1)%24
+    display_time(alarm_h,alarm_m,color_index)
 
 
-def increment_AlarmM(pin):
-    global alarmH,alarmM,color_index
-    alarmM = (alarmM+1)%24
-    display_time(alarmH,alarmM,color_index)
+def increment_alarm_m(pin):
+    global alarm_h,alarm_m,color_index
+    alarm_m = (alarm_m+1)%24
+    display_time(alarm_h,alarm_m,color_index)
 
 def alarm_on_off(pin):
-    global AlarmOn
-    AlarmOn = not AlarmOn
-    if(AlarmOn == True):
+    global alarm_on
+    alarm_on = not alarm_on
+    if(alarm_on == True):
         display_2points(4,color_index)
     else :
         turn_off_2points(4)
-
+x
 
 def increment_minute(pin):
     global second_timer,minute_timer,color_index
@@ -399,7 +399,7 @@ def toggle_timer(pin):
 ########################################################################
 
 def alarm(hour, minute):
-    if hour == alarmH and minute == alarmM:
+    if hour == alarm_h and minute == alarm_m:
         while buttonA.value() == 1 :
             buzzer.value(1)    
             time.sleep(1)
@@ -408,46 +408,46 @@ def alarm(hour, minute):
 
 def getTemperatureAndHumidity():
         
-        global temp_digits
-        global humidity_digits
+    global temp_digits
+    global humidity_digits
+    
+    temp_digits = []
+    humidity_digits = []
+
+    temperature, humidity = sensor.read_values()
         
-        temp_digits = []
-        humidity_digits = []
-    
-        temperature, humidity = sensor.read_values()
-         
-        humidity_str = f"{humidity:.2f}"
-        temp_str = f"{temperature:.2f}"
-         
-        for d in temp_str:
-           if d.isdigit():
-               temp_digits.append(int(d))
-    
-        for d in humidity_str:
-           if d.isdigit():
-               humidity_digits.append(int(d))
+    humidity_str = f"{humidity:.2f}"
+    temp_str = f"{temperature:.2f}"
+        
+    for d in temp_str:
+        if d.isdigit():
+            temp_digits.append(int(d))
+
+    for d in humidity_str:
+        if d.isdigit():
+            humidity_digits.append(int(d))
                
 def display_change():
         
-        global display_mode
-        if  display_mode==0:
-            getTemperatureAndHumidity()
-            display_number(3,temp_digits[0],color_index)
-            display_number(2,temp_digits[1],color_index)
-            display_symbol(1,"degree",color_index)
-            display_symbol(0,"celsius",color_index)
-            np.write()
-            display_mode = 1
-            time.sleep(0.2) 
-        elif display_mode==1:
-            getTemperatureAndHumidity()
-            display_number(3,humidity_digits[0],color_index)
-            display_number(2,humidity_digits[1],color_index)
-            display_number(1,humidity_digits[2],color_index)
-            display_number(0,humidity_digits[3],color_index)
-            np.write()
-            display_mode = 0
-            time.sleep(0.2)
+    global display_mode
+    if  display_mode==0:
+        getTemperatureAndHumidity()
+        display_number(3,temp_digits[0],color_index)
+        display_number(2,temp_digits[1],color_index)
+        display_symbol(1,"degree",color_index)
+        display_symbol(0,"celsius",color_index)
+        np.write()
+        display_mode = 1
+        time.sleep(0.2) 
+    elif display_mode==1:
+        getTemperatureAndHumidity()
+        display_number(3,humidity_digits[0],color_index)
+        display_number(2,humidity_digits[1],color_index)
+        display_number(1,humidity_digits[2],color_index)
+        display_number(0,humidity_digits[3],color_index)
+        np.write()
+        display_mode = 0
+        time.sleep(0.2)
             
 #Return an integer between 0 an 3 corresponding to the 4 differents states of the clock
 def statemode():
@@ -461,7 +461,7 @@ def state():
         print("mode 0")
         #Display Time
         display_time(hour,minute,color_index)
-        if (AlarmOn == True):
+        if (alarm_on == True):
             alarm(hour,minute)
         #change time zone
         buttonB.irq(trigger = Pin.IRQ_FALLING, handler = lambda pin: handle_debounced(pin, convert_timezone))
@@ -471,9 +471,9 @@ def state():
     #Set and display alarm time
     elif (statemode() == 1): # Alarm
         print("mode 1")
-        display_time(alarmH, alarmM, color_index)
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmH))
-        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_AlarmM))
+        display_time(alarm_h, alarm_m, color_index)
+        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_alarm_h))
+        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_alarm_m))
         buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,alarm_on_off))
 
     # Set and display timer

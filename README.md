@@ -3,13 +3,13 @@
 * [Part 1: Showing current time](#CurentTime)
 * [Part 2: Alarm Clock](#AlarmClock)
 
-### Team Members
+## Team Members
 
 * BERMAN Noam (responsible for code)
 * BRON Matthieu (responsible for github)
 * CLOUARD Adam (responsible for documentation)
 
-### Implementations
+## Implementations
 
 * Showing current time
 * Alarm clock
@@ -20,38 +20,80 @@
 * <em>Automatic night mode base on time</em>
 * <em>Timer</em>
 
-### Hardware description
-
+## Hardware description
+For our ptoject, we used :
 * ESP32 board with pre-installed MicroPython firmware, USB cable
 * Breadboard
 * 5 Push button
 * 4 NeoPixel displays
 * Proximity sensor
-* Jumper wires
 * Temperature and humidity sensor
+* Jumper wires
 
-### Software description
-<u>Include flowcharts of your algorithm(s) and direct links to the source files.Present the modules you used in the project</u>
-
-Flowshart of digital clock
-
-<u>je pense qu'il faut supprimer le flowchart, ou alors faire une machine à état avec des cercles </u>
-
-![Flow_chart_digital_clock](Pictures/flowchart_digital_clock.drawio.svg)
-
-
-
-* [Display current time](#CurentTime) <u>link to py </u>
-* [Alarm Clock](#AlarmClock) <u>link to py </u>
-* [Light based on distance](#LightDistance) <u>link to py </u>
-
-### Instructions and photos
 Wiring of digital clock
 
 ![schema_gpio](Pictures/schema_gpio.svg)
 
-Different states of the alarm clock
+## Software description
+<u>Include flowcharts of your algorithm(s) and direct links to the source files.Present the modules you used in the project</u>
 
+State machine of digital clock
+
+![State_machine](Pictures/state_machine.svg)
+
+<u>Mettre les fonctions python de machine à état</u>
+
+
+
+
+
+
+<a name="CurentTime"></a>
+
+### Display current time
+First we connect to wifi thanks to the method [`connect_wifi()`](samplesOfCode/connect_wifi.md) . the, we did an API request with the [`get_time()`](samplesOfCode/get_time.md) to get current local time.\
+To display numbers on NeoPixels, we created a <b>dictionarry</b>, connecting nunmbers and location of display's leds.\
+<img src="Pictures/NeoPixel_schematics.svg" width="50%" alt="NeoPixel Schematic">\
+*Schematic of one NeoPixel display used to set the dictionarry*\
+<br>
+We created the function [`display_time()`](samplesOfCode/display_time.md) who takes hour, minutes and the color we d'like to display.\
+To keep time accurate, we call [`update_time()`](samplesOfCode/update_time.md).
+
+
+<a name="AlarmClock"></a>
+
+### Alarm clock
+To have an alarm, we created global varaibles in our program : <b>alarm_h</b> and <b>alarm_m</b> which store value of the alarm time and <b>alarm_on</b>, a boolean which permit to enable or disable alarm.\
+Each seconds, we call the function [`Alarm()`](samplesOfCode/Alarm.md) which check if current time is equals to alarm time. If it's the case, the alarm starts to ring.
+
+
+
+<a name="Timer"></a>
+
+### Timer
+
+<a name="Temperature_humidity"></a>
+
+### Temperature and humidity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## Instructions and photos
+
+
+Here is a table summing up use of buttons depending on the current state.\
 
 | Button / Mode                 |   M (yellow)  |   L (white) |   A (red)                 |   B (green)       |   C (blue)           |
 | :----:                        | :----:        | :----:      | :----:                    | :----:            | :----:               | 
@@ -59,6 +101,8 @@ Different states of the alarm clock
 | Set Alarm                     | Mode          | Light       |Switch On/Off alarm        | Increase hours    | Increase minutes     |
 | Set Timer                     | Mode          | Light       |Start Timer                | Increase minutes  | Increase seconds     |
 | Display Trmperature & humidity| Mode          | Light       |Change temperature/humidity| -                 |      -               |  
+
+
 
 
 States are defined thanks to the function `state()`.
@@ -98,31 +142,14 @@ def state():
         buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,display_change))
 ```
 
-Schematic of the NeoPixel display, we set a dictionary
-
-![NeoPixel_schematic](Pictures/NeoPixel_schematics.svg)
-
-
-<a name="CurentTime"></a>
-
-## Display current time
 
 
 
-<a name="AlarmClock"></a>
-
-## Alarm clock
-
-<a name="LightDistance"></a>
-
-## Change brightness according to distance
-
-
-
-### References and tools
+## References and tools
 
 * API current time request [timeapi.io](https://timeapi.io/api/time/current/zone?timeZone=Europe/Prague)
 * Use a dictionarry in Python [w3schools.com](https://www.w3schools.com/python/python_dictionaries_access.asp) and convert string into a dictionarry [geeksforgeeks.org](https://www.geeksforgeeks.org/python-convert-string-dictionary-to-dictionary/)
 * Acces one specific char of a strig [computerscienced.co](https://computerscienced.co.uk/site/knowledge-base/how-do-i-get-the-first-letter-of-a-string-in-python/)
 * To know RGB color codes [rapidtables.com](https://www.rapidtables.com/web/color/RGB_Color.html)
 * Functions linked to pin class [micropython.org](https://docs.micropython.org/en/latest/library/machine.Pin.html)
+* ESP32 online simulation [wokwi.com](https://wokwi.com)
