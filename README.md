@@ -1,12 +1,13 @@
 # Project BPA DE2 : Clock
 
-![Clock](Pictures/Temperature_lightOn.jpg)
+![Clock](Pictures/First_picture_clock.jpeg)
 *Picture of the clock showing ambiant temperature.*
 
-* [State 1: Showing current time](#CurentTime)
-* [State 2: Alarm Clock](#AlarmClock)
+* [State 1: Showing current time](#display-current-time)
+* [State 2: Alarm Clock](#alarm-clock)
 * [State 3: Timer](#timer)
-* [State 4: Temperature & Humidity](#Temperature_humidity)
+* [State 4: Temperature & Humidity](#temperature-and-humidity)
+* [Others features](#others-features)
 
 ## Team Members
 
@@ -59,8 +60,6 @@ State machine of digital clock
 
 
 
-<a name="CurentTime"></a>
-
 ### Display current time
 First we connect to wifi thanks to the method [`connect_wifi()`](samplesOfCode/connect_wifi.md). Then, we did an API request with [`get_time()`](samplesOfCode/get_time.md) to get current local time and save the result into variables.\
 To display numbers on NeoPixels, we created a <b>dictionarry</b>, connecting numbers and location of display's leds.\
@@ -72,14 +71,10 @@ To keep time accurate, each second, we call [`update_time()`](samplesOfCode/upda
 
 
 
-<a name="AlarmClock"></a>
-
 ### Alarm clock
 We enter to "Alarm" mode, and to set the alarm, we created global varaibles: <b>alarm_h</b> and <b>alarm_m</b> which store value of the alarm time. We set this two variables thanks to buttonB and buttonC. There is also <b>alarm_on</b>, a boolean which allows to enable or disable alarm. Each seconds, we call the function [`Alarm(hour, minute)`](samplesOfCode/Alarm.md) which check if current time is equals to alarm time and if the alarm is enable. If it's the case, the alarm starts to ring.
 
 
-
-<a name="Timer"></a>
 
 ### Timer
 We enter to "Timer" mode and like the alarm, to set <b>minute_timer</b> and <b>second_timer</b> which are timer's variables, we click on buttonB and buttonC.
@@ -88,15 +83,12 @@ Then, to start the timer, we click on buttonA. This action will call [`toggle_ti
 
 
 
-<a name="Temperature_humidity"></a>
-
 ### Temperature and humidity
-
 In order to display temperature and humidity, we used a variable <b>display_mode</b> that control in which mode we are. When this variable is 0, the captor return the current temperature and we display it on the digital clock with the function [`display_change()`](samplesOfCode/) including the symbols °C. The same process happens for humidity when <b>display_mode</b> is equal to 1. You can switch between the 2 modes as you wish.
 
 
 
-
+### Others features
 
 
 
@@ -107,6 +99,8 @@ In order to display temperature and humidity, we used a variable <b>display_mode
 
 
 ## Instructions and photos
+
+![Clock](Pictures/Clock_COLLAGE.jpg)
 
 
 Here is a table summing up use of buttons depending on the current state.
