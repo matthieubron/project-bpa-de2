@@ -1,4 +1,4 @@
-from machine import Timer,Pin,I2C
+from machine import Timer,Pin,I2C,PWM
 import network
 import urequests
 import json
@@ -10,9 +10,20 @@ from CaptorsConfig import DHT12
 from sh1106 import SH1106_I2C
 from CaptorsConfig import HCSR04
 
-# Configuration des NeoPixel
 
-Num_PixelsLed = 14 #NE PAS OUBLIER DE CHANGER LE NB DE LED
+
+#    @brief     Controls a Digital clock that display time and have many features
+#    @details   This file display the current time on Neopixel Leds, it can also change the timezone, set a timer, an alarm, show temperature and humidity and also change the color of the clock.
+#    @author    Berman Noam
+#    @author    Bron Matthieu
+#    @author    Clouard Adam
+#    @version   1.0
+#    @date      28/11/2024
+
+
+# Configuration of NeoPixel
+
+Num_PixelsLed = 14
 PIN_NeoPixel = 25
 
 np = neopixel.NeoPixel(machine.Pin(PIN_NeoPixel), (Num_PixelsLed * 4) + 2)
@@ -20,19 +31,21 @@ np = neopixel.NeoPixel(machine.Pin(PIN_NeoPixel), (Num_PixelsLed * 4) + 2)
 
 # GPIO Configuration
 
-buttonM = Pin(26,Pin.IN,Pin.PULL_UP)#jaune
-buttonL = Pin(27,Pin.IN,Pin.PULL_UP)#blanc
-buttonA = Pin(9,Pin.IN,Pin.PULL_UP) #rouge et temphumidity
-buttonB = Pin(10,Pin.IN,Pin.PULL_UP) #vert
-buttonC = Pin(13,Pin.IN,Pin.PULL_UP) #bleu
+buttonM = Pin(26,Pin.IN,Pin.PULL_UP)#yellow
+buttonL = Pin(27,Pin.IN,Pin.PULL_UP)#white
+buttonA = Pin(13,Pin.IN,Pin.PULL_UP) #blue
+buttonB = Pin(10,Pin.IN,Pin.PULL_UP) #green
+buttonC = Pin(5,Pin.IN,Pin.PULL_UP) #red
 
-buzzer=Pin(23,Pin.OUT)
+buzzer= PWM(Pin(23),freq=1000,duty=0)
+buzzer.duty(0)
 
 i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=400_000)
 sensor = DHT12(i2c)
-ultrasonic = HCSR04(trigger_pin=5, echo_pin=12, echo_timeout_us=1000000)
+
 
 # Variables Configuration
+
 mode = 0
 
 hour_req = 0
@@ -55,33 +68,34 @@ alarm_on = False
 temp_digits = []
 humidity_digits = []
 display_mode = 0
+
 #Different colors for the display
 
 colors = [(255,255,255),(127,0,255),(0,0,255),(0,255,0),(255,0,0)]
-colors_brightness=[(128,128,128),(64,0,128),(0,0,128),(0,128,0),(128,0,0)]
 color_index = 0
 turnoff_color = [(0,0,0)]
 turnoff_color_index = 0
 
-SSID = "telma"  # Remplacez par le nom de votre réseau Wi-Fi
-PASSWORD = "01123581321"  # Remplacez par le mot de passe de votre Wi-Fi
 
-#Creation of the dictionnary for the TimeZone
+#Creation of the list for the TimeZone
 
 time_zone_index = 0
 time_zone = [-7,+15,-8]
 
-#Creation of the dictionnary for symbols
+#Bounce button
 
-symbols_leds = {
-    "celsius" : [0, 1, 2, 3, 8, 9, 10, 11],  
-    "degree": [0, 1, 2, 3, 4, 5, 12, 13]   
-}
+last_press_times = {}
+debounce_time = 200
+
+
+SSID = "telma"
+PASSWORD = "01123581321"
+
 
 #Creation of the dictionnary for the LED
 
 chiffres_leds = {
-    0: {  
+    0: {
         0: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
         1: [4, 5, 6, 7],
         2: [2, 3, 4, 5, 8, 9, 10, 11, 12, 13],
@@ -130,12 +144,16 @@ chiffres_leds = {
         9: [44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 56, 57]
 
     },
-    4 : [28,29]
+    4 : [28,29],
+    5 : [30,31,32,33,34,35,42,43],
+    6 : [44,45,46,47,52,53,54,55]
 
 }
 
-# Connexion to the WIFI
 
+"""
+This function sends a request to connect to the wifi using SSID and PASSWORD
+"""
 def connect_wifi():
     wifi = network.WLAN(network.STA_IF)
     wifi.active(True)
@@ -147,16 +165,23 @@ def connect_wifi():
     print("Connecté !")
 
 
-# Request API to get the time
 
+"""
+This function sends a request to get the current time
+and puts it in the different variables
+
+@return		hours_req		the current hour
+@return		minute_req		the courrent minute
+@return		second_req		the current seconde
+"""
 def get_time():
     print("Effectuer la requête GET")
     response = urequests.get("https://timeapi.io/api/time/current/zone?timeZone=Europe/Prague")
 
     if response.status_code == 200:
-        result = response.json()  # Utilise .json() pour charger directement en dict
+        result = response.json()
 
-        # Extraire l'heure et les minutes
+
         hour_req = result.get("hour")
         minute_req = result.get("minute")
         second_req = result.get("seconds")
@@ -164,7 +189,7 @@ def get_time():
         print("Minute:", minute_req)
         print("Second:",second_req)
 
-        # Fermer la réponse
+
         response.close()
         return hour_req, minute_req, second_req
     else:
@@ -172,9 +197,12 @@ def get_time():
         response.close()
         return None, None, None
 
-# Modify the time
-# MANDATORY to put the parameter even if we don't use it so use timer or if only one "_"
+"""
+This function takes care of the incrementation of the time
+and uses display_time to show the values on the digital clock
 
+@param _	Identify the pin that triggered the interruption
+"""
 def update_time(_):
     global hour,minute,second
     second +=1
@@ -186,65 +214,50 @@ def update_time(_):
         hour +=1
     if hour >=24:
         hour = 0
-    print(hour)
-    print(minute)
-    print(second)
-    display_time(hour,minute,color_index)
 
-# Modify the led to turn on
-#number is for each neopixels, we control each of them one by one
-#parameter number corresponds to the number to display on the neopixel (0-9)
+"""
+This function is used to set specific number on Leds
 
+@param neopixel_index		Indicates on which neopixel the number should be display
+@param number				Refers to the number in the dictionnary that corresponds to a segment of Leds
+@param color_index			Index that gives the information on which color to chose in the table colors
+"""
 def display_number(neopixel_index,number,color_index):
-    
-    leds = chiffres_leds[neopixel_index][number]#.get(number,[]) #[] to avoid the crash if not find it will return []
-    distance = ultrasonic.distance_cm()
-    print(distance, 'cm')
-    if distance <= 5:
-        #keep brightness of all seven segments high
-        for led in leds:
-            np[led] = colors[color_index]
-    else:
-        for led in leds:
-            np[led] = colors_brightness[color_index]
 
-
-def display_2points(two_points_index,color_index):
-    
-    leds = chiffres_leds.get(two_points_index,[]) #[] to avoid the crash if not find it will return []
-    distance = ultrasonic.distance_cm()
-    if distance<= 5:
-        for led in leds:
-            np[led] = colors[color_index]
-    else:
-        for led in leds:
-            np[led] = colors_brightness[color_index]
-
-def display_symbol(neopixel_index,number,color_index):
-    
-    leds = symbols_leds.get(symbol_name, [])
+    leds = chiffres_leds[neopixel_index][number]
     for led in leds:
         np[led] = colors[color_index]
 
-#Modify the display on each NeoPixel
 
+"""
+This function is used to set the two points on the Led
+
+@param two_points_index		Refers to the index of the two Leds that control the two points on the clock
+@param color_index		    Index that gives the information on which color to chose in the table colors
+"""
+def display_2points(two_points_index,color_index):
+
+    leds = chiffres_leds.get(two_points_index,[])
+    for led in leds:
+        np[led] = colors[color_index]
+
+
+"""
+This function displays the current time on the digital clock
+
+@param hour			Current hour
+@param minute		Current minute
+@param color_index	Index that gives the information on which color to chose in the table colors
+"""
 def display_time(hour,minute,color_index):
 
     #Reset the clock by putting all led black corresponds to the number 8 on our device
-
-    #display_number(0,8,5)
-    #display_number(1,8,5)
-    #display_number(2,8,5)
-    #display_number(3,8,5)
 
     turn_off(0,8,0)
     turn_off(1,8,0)
     turn_off(2,8,0)
     turn_off(3,8,0)
 
-    #OR
-
-    #turn_off_simple(np)
 
     display_number(0,hour // 10,color_index)
     display_number(1,hour % 10,color_index)
@@ -254,30 +267,58 @@ def display_time(hour,minute,color_index):
     np.write()
 
 
-#Change the color to display
+
+"""
+This function turns off the Leds on the neopixel
+
+@param neopixel_index		Indicates on which neopixel the number should be display
+@param number				Refers to the number in the dictionnary that corresponds to a segment of Leds
+@param turnoff_color_index	Index that gives the information on which color to chose in the table turnoff_color
+"""
+def turn_off(neopixel_index,number,turnoff_color_index):
+
+    leds = chiffres_leds[neopixel_index][number]
+    for led in leds:
+        np[led] = turnoff_color[turnoff_color_index]
+
+"""
+This function turns off the Leds of the two points
+
+@param two_points_index		Refers to the index of the two Leds that control the two points on the clock
+"""
+def turn_off_2points(two_points_index):
+
+    leds = chiffres_leds[two_points_index]
+    for led in leds:
+        np[led] = (0,0,0)
 
 
-last_press_times = {}  # Dictionnaire pour suivre les derniers temps d'appui de chaque bouton
-debounce_time = 200
 
+"""
+This function makes sure that there is no bounce when we press a button
+
+@param pin		correspond to the pin of the button
+@param callback	call the associated function
+"""
 def handle_debounced(pin, callback):
     global last_press_times
     current_time = time.ticks_ms()
 
-    # Récupérer le dernier temps pour ce bouton, par défaut 0 s'il n'existe pas
     last_time = last_press_times.get(pin, 0)
 
-    # Vérifier si le temps écoulé est suffisant
     if time.ticks_diff(current_time, last_time) > debounce_time:
-        last_press_times[pin] = current_time  # Mettre à jour le dernier temps
-        callback(pin)  # Appeler la fonction associée
-        
+        last_press_times[pin] = current_time
+        callback(pin)
 
 
+
+"""
+This function is in charge of the color displayed
+
+@param pin	Identify the pin that triggered the interruption
+"""
 def change_color(pin):
     global color_index, last_press_time
-
-    #wait_pin_change(pin)
 
     print("Button pressed!")
     if buttonL.value() == 0:
@@ -287,28 +328,11 @@ def change_color(pin):
             color_index = 0
 
 
+"""
+This function changes the timezone of the time display on the clock
 
-def turn_off(neopixel_index,number,turnoff_color_index): #UNE DES DEUX A SUPPRIMER
-
-    leds = chiffres_leds[neopixel_index][number]
-    for led in leds:
-        np[led] = turnoff_color[turnoff_color_index]
-
-def turn_off_simple(np):
-    for i in range(len(np)):
-        np[i] = (0,0,0)
-    np.write()
-
-def turn_off_2points(two_points_index):
-
-    leds = chiffres_leds.get(two_points_index,[]) #[] to avoid the crash if not find it will return []
-    for led in leds:
-        np[led] = (0,0,0)    
-
-#Je ne pense pas que ça va fonctionner sinon le faire en deux fonctions
-#Mettre dans un premier temps avec les arguments etc et créer une deuxième fonction
-#Sans argument qui sera appeler dans le handler du bouton
-
+@param pin	Identify the pin that triggered the interruption
+"""
 def convert_timezone(pin):
     global time_zone_index, hour, minute, color_index
 
@@ -317,53 +341,90 @@ def convert_timezone(pin):
     hour = (hour + shift) %24
     display_time(hour,minute,color_index)
 
+"""
+This function increases the hour of the alarm by 1
 
+@param pin	Identify the pin that triggered the interruption
+"""
 def increment_alarm_h(pin):
     global alarm_h,alarm_m,color_index
     alarm_h = (alarm_h+1)%24
     display_time(alarm_h,alarm_m,color_index)
 
+"""
+This function increases the minute of the alarm by 1
 
+@param pin	Identify the pin that triggered the interruption
+"""
 def increment_alarm_m(pin):
     global alarm_h,alarm_m,color_index
-    alarm_m = (alarm_m+1)%24
+    alarm_m = (alarm_m+1)%60
     display_time(alarm_h,alarm_m,color_index)
 
-def alarm_on_off(pin):
-    global alarm_on
-    alarm_on = not alarm_on
-    if(alarm_on == True):
-        display_2points(4,color_index)
-    else :
-        turn_off_2points(4)
-x
+"""
+This function sets either on or off the alarm
 
+@param pin	Identify the pin that triggered the interruption
+"""
+def alarm_on_off(pin):
+    global alarm_on, hour,minute
+    alarm_on = not alarm_on
+    print(alarm_on)
+
+"""
+This function triggers the buzzer when the curent time is equals to alarm time 
+
+@param hour		Current hour
+@param	minute	Current minute
+"""
+def alarm(hour, minute):
+    global alarm_on
+    if hour == alarm_h and minute == alarm_m and alarm_on:
+        for i in range(5):
+            display_time(hour,minute,color_index)
+            buzzer.duty(512)
+            time.sleep(1)
+            buzzer.duty(0)
+            time.sleep(1)
+        alarm_on = False
+
+"""
+This function increases the minute of the timer
+
+@param pin	Identify the pin that triggered the interruption
+"""
 def increment_minute(pin):
     global second_timer,minute_timer,color_index
     minute_timer = (minute_timer+1)%60
     display_time(minute_timer,second_timer,color_index)
 
+"""
+This function increases the second of the timer
 
+@param pin	Identify the pin that triggered the interruption
+"""
 def increment_second(pin):
     global second_timer,minute_timer,color_index
     second_timer = (second_timer+1)%60
     display_time(minute_timer,second_timer,color_index)
 
 
-
-
-#Timer
+"""
+This function decrease the times each secondes
+and ring a buzzer when the clock reaches 0
+"""
 def timer():
     global second_timer,minute_timer,color_index
+    buzzer_active = False
     while timer_on:
 
         if minute_timer > 0 and second_timer > 0:
-            sleep(1)
+            time.sleep(1)
             second_timer -=1
             display_time(minute_timer,second_timer,color_index)
 
         elif minute_timer > 0 and second_timer == 0:
-            sleep(1)
+            time.sleep(1)
             minute_timer -=1
             second_timer = (second_timer-1)%60
             display_time(minute_timer,second_timer,color_index)
@@ -374,13 +435,19 @@ def timer():
             display_time(minute_timer,second_timer,color_index)
 
         elif minute_timer == 0 and second_timer == 0:
+            if not buzzer_active:
+                display_time(minute_timer,second_timer,color_index)
+                buzzer.duty(512)
+                time.sleep(2)
+                buzzer.duty(0)
+                buzzer_active = True
             time.sleep(1)
-            display_time(minute_timer,second_timer,color_index)
-            buzzer.value(1)    
-            time.sleep(2)
-            buzzer.value(0)
 
+"""
+This function allows the user to pause or resume the timer
 
+@param pin	Identify the pin that triggered the interruption
+"""
 def toggle_timer(pin):
     global timer_on
 
@@ -392,33 +459,22 @@ def toggle_timer(pin):
         _thread.start_new_thread(timer,())
 
 
-########################################################################
-########################################################################
-########################################################################
-########################################################################
-########################################################################
-
-def alarm(hour, minute):
-    if hour == alarm_h and minute == alarm_m:
-        while buttonA.value() == 1 :
-            buzzer.value(1)    
-            time.sleep(1)
-            buzzer.value(0)      
-            time.sleep(1)
-
+"""
+This function uses the DHT12 sensor to get the current temperature and humidity
+"""
 def getTemperatureAndHumidity():
-        
+
     global temp_digits
     global humidity_digits
-    
+
     temp_digits = []
     humidity_digits = []
 
     temperature, humidity = sensor.read_values()
-        
+
     humidity_str = f"{humidity:.2f}"
     temp_str = f"{temperature:.2f}"
-        
+
     for d in temp_str:
         if d.isdigit():
             temp_digits.append(int(d))
@@ -426,88 +482,143 @@ def getTemperatureAndHumidity():
     for d in humidity_str:
         if d.isdigit():
             humidity_digits.append(int(d))
-               
-def display_change():
-        
+
+"""
+This function allows the user to switch between the temperature mode
+and the humidity mode and call a function to display it on the clock
+
+@param pin	Identify the pin that triggered the interruption
+"""
+def display_change(pin):
+
     global display_mode
-    if  display_mode==0:
-        getTemperatureAndHumidity()
-        display_number(3,temp_digits[0],color_index)
-        display_number(2,temp_digits[1],color_index)
-        display_symbol(1,"degree",color_index)
-        display_symbol(0,"celsius",color_index)
-        np.write()
-        display_mode = 1
-        time.sleep(0.2) 
-    elif display_mode==1:
-        getTemperatureAndHumidity()
-        display_number(3,humidity_digits[0],color_index)
-        display_number(2,humidity_digits[1],color_index)
-        display_number(1,humidity_digits[2],color_index)
-        display_number(0,humidity_digits[3],color_index)
-        np.write()
-        display_mode = 0
-        time.sleep(0.2)
-            
-#Return an integer between 0 an 3 corresponding to the 4 differents states of the clock
-def statemode():
+    print(display_mode)
+
+    turn_off(0,8,0)
+    turn_off(1,8,0)
+    turn_off(2,8,0)
+    turn_off(3,8,0)
+
+    if  display_mode == 0:
+        display_change_temp()
+    else:
+        display_change_humidity()
+
+"""
+This function display the temperature on the display
+and changes the mode to humidity for the next triggered
+"""
+def display_change_temp():
+    global display_mode
+    getTemperatureAndHumidity()
+    display_number(0,temp_digits[0],color_index)
+    display_number(1,temp_digits[1],color_index)
+    display_2points(4,color_index)
+    display_2points(5,color_index)
+    display_2points(6,color_index)
+    display_mode = 1
+    np.write()
+    time.sleep(1)
+    return
+
+
+"""
+This function display the humidity on the display
+and changes the mode to temperature for the next triggered
+"""
+def display_change_humidity():
+    global display_mode
+    getTemperatureAndHumidity()
+    print(humidity_digits)
+    display_number(0,humidity_digits[0],color_index)
+    display_number(1,humidity_digits[1],color_index)
+    display_2points(4,color_index)
+    display_number(2,humidity_digits[2],color_index)
+    display_number(3,humidity_digits[3],color_index)
+    display_mode = 0
+    np.write()
+    time.sleep(1)
+    return
+
+
+"""
+This function configures the button depending on the current mode the user is,
+so that a button can be configure for different function depending on the mode
+"""
+def configure_buttons():
+    global mode
+    buttonA.irq(handler=None)
+    buttonB.irq(handler=None)
+    buttonC.irq(handler=None)
+
+    if mode == 0:
+        buttonB.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, convert_timezone))
+
+    elif mode == 1:
+        buttonA.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, alarm_on_off))
+        buttonB.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, increment_alarm_h))
+        buttonC.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, increment_alarm_m))
+
+    elif mode == 2:
+        buttonA.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, toggle_timer))
+        buttonB.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, increment_minute))
+        buttonC.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, increment_second))
+
+    elif mode == 3:
+        buttonA.irq(trigger=Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, display_change))
+
+
+
+"""
+This function takes care of which mode is currently used
+and call a function that configure the button depending on the mode
+
+@param pin	Identify the pin that triggered the interruption
+"""
+def statemode(pin):
     global mode
     mode = (mode + 1)%4
-    return mode
+    print(mode)
+    configure_buttons()
 
+"""
+This function initiates what the clock doesat the beginning of each mode
+of the clock
+"""
 def state():
-    #Display curent Time
-    if (statemode() == 0):
-        print("mode 0")
-        #Display Time
+    if (mode == 0):
         display_time(hour,minute,color_index)
-        if (alarm_on == True):
-            alarm(hour,minute)
-        #change time zone
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler = lambda pin: handle_debounced(pin, convert_timezone))
-        # Switch on / off alarm
-        
 
-    #Set and display alarm time
-    elif (statemode() == 1): # Alarm
-        print("mode 1")
+    elif (mode == 1):
         display_time(alarm_h, alarm_m, color_index)
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_alarm_h))
-        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_alarm_m))
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,alarm_on_off))
 
-    # Set and display timer
-    elif (statemode() == 2):
-        print("mode 2")
+    elif (mode == 2):
         display_time(minute_timer, second_timer, color_index)
-        buttonC.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_second))
-        buttonB.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,increment_minute))
-        #/!\ pas sûr pour de l'appel de fonction
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,toggle_timer))
 
-    elif (statemode() == 3):
-        print("mode 3")
-        buttonA.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin,display_change))
-        
-        
+    elif (mode == 3):
 
+        pass
+
+"""
+This function is the main, sendind the request and therefore
+updating the time every 1000ms, while setting the state modes of the clock
+"""
 def main():
-    #Time request
+
     global hour,minute,second,mode
     connect_wifi()
     hour_req,minute_req,second_req = get_time()
-    hour = hour_req
-    minute = minute_req
-    second = second_req
+    hour =  hour_req
+    minute =   minute_req
+    second =  second_req
 
     timer = Timer(0)
     timer.init(period = 1000, mode = Timer.PERIODIC, callback = update_time)
-    
     while True :
-        # All function who need to run in background
         state()
-        pass
-    
-    
+        alarm(hour,minute)
+        time.sleep(0.1)
+
+
 buttonL.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, change_color))
 buttonM.irq(trigger = Pin.IRQ_FALLING, handler=lambda pin: handle_debounced(pin, statemode))

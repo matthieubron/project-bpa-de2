@@ -1,23 +1,22 @@
 ```Python
-def display_change():
-        
+"""
+This function allows the user to switch between the temperature mode
+and the humidity mode and call a function to display it on the clock
+
+@param pin	Identify the pin that triggered the interruption
+"""
+def display_change(pin):
+
     global display_mode
-    if  display_mode==0:
-        getTemperatureAndHumidity()
-        display_number(3,temp_digits[0],color_index)
-        display_number(2,temp_digits[1],color_index)
-        display_symbol(1,"degree",color_index)
-        display_symbol(0,"celsius",color_index)
-        np.write()
-        display_mode = 1
-        time.sleep(0.2) 
-    elif display_mode==1:
-        getTemperatureAndHumidity()
-        display_number(3,humidity_digits[0],color_index)
-        display_number(2,humidity_digits[1],color_index)
-        display_number(1,humidity_digits[2],color_index)
-        display_number(0,humidity_digits[3],color_index)
-        np.write()
-        display_mode = 0
-        time.sleep(0.2)
+    print(display_mode)
+
+    turn_off(0,8,0)
+    turn_off(1,8,0)
+    turn_off(2,8,0)
+    turn_off(3,8,0)
+
+    if  display_mode == 0:
+        display_change_temp()
+    else:
+        display_change_humidity()
 ```

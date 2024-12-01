@@ -1,4 +1,9 @@
 ```Python
+"""
+This function allows the user to pause or resume the timer
+
+@param pin	Identify the pin that triggered the interruption
+"""
 def toggle_timer(pin):
     global timer_on
 

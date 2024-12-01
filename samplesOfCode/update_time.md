@@ -1,4 +1,10 @@
 ```Python
+"""
+This function takes care of the incrementation of the time
+and uses display_time to show the values on the digital clock
+
+@param _	Identify the pin that triggered the interruption
+"""
 def update_time(_):
     global hour,minute,second
     second +=1
@@ -10,8 +16,4 @@ def update_time(_):
         hour +=1
     if hour >=24:
         hour = 0
-    print(hour)
-    print(minute)
-    print(second)
-    display_time(hour,minute,color_index)
 ```

@@ -3,12 +3,6 @@
 ![Clock](Pictures/First_picture_clock.jpeg)
 *Picture of the clock showing ambiant temperature.*
 
-* [State 1: Showing current time](#display-current-time)
-* [State 2: Alarm Clock](#alarm-clock)
-* [State 3: Timer](#timer)
-* [State 4: Temperature & Humidity](#temperature-and-humidity)
-* [Others features](#others-features)
-
 ## Team Members
 
 * BERMAN Noam (responsible for code)
@@ -17,18 +11,21 @@
 
 ## Implementations
 
-* Showing current time
-* Alarm clock
-* Light intensity base on distance
+* [Showing current time](#display-current-time)
+* [Alarm Clock](#alarm-clock)
+* [Timer](#timer)
+* [Temperature & Humidity](#temperature-and-humidity)
+* Change time zone
 * Change time color
-* Temperature and humidity sensor
-* Time zones
-* Timer
+* Light intensity base on distance
+* [Others features](#others-features)
+
 
 ## Hardware description
 For our ptoject, we used :
-* ESP32 board with pre-installed MicroPython firmware, USB cable
-* Breadboard
+* 1 ESP32 board with pre-installed MicroPython firmware
+* 1 USB cable
+* 1 Breadboard
 * 5 Push button
 * 4 NeoPixel displays
 * 1 Proximity sensor
@@ -36,26 +33,24 @@ For our ptoject, we used :
 * 1 Buzzer
 * Jumper wires
 
-<b>Wiring of digital clock</b>
+<b>Wiring of Digital clock</b>
 
 ![schema_gpio](Pictures/schema_gpio.svg)
 
 
 
 
-
-
-
 ## Software description
-<u>Include flowcharts of your algorithm(s) and direct links to the source files.Present the modules you used in the project</u>
 
-State machine of digital clock
-
+### State machine
 ![State_machine](Pictures/state_machine.svg)
+*Digital clock diagram*
 
-
-<!-- Expliquer les fonctions état avec le graph d'état, dire que c'etait aussi pour optimiser le nombre de boutons...  -->
-<!-- <u>Mettre les fonctions python de machine à état</u> -->
+To avoid the use of tens of buttons, we decide to create a state machine. We defined 4 different states. The first one is used to <b>display the current time</b>. The second one is used to set an <b>alarm</b>. The third one is used to set a <b>timer</b> and the last one is used to <b>display ambiant temperature and humidity</b>.
+In the code, we use a global variable called <b>mode</b> which takes values between 0 and 3 and it is modified thanks to the function [`statemode()`](samplesOfCode/statemode.md).\
+Depending on this variable
+* We display informations on the curent state with the function [`state()`](samplesOfCode/state.md).
+* Buttons A, B and C get different purpose with the function [`configure_buttons()`](samplesOfCode/configure_buttons.md).
 
 
 
@@ -71,8 +66,10 @@ To keep time accurate, each second, we call [`update_time()`](samplesOfCode/upda
 
 
 
+
 ### Alarm clock
 We enter to "Alarm" mode, and to set the alarm, we created global varaibles: <b>alarm_h</b> and <b>alarm_m</b> which store value of the alarm time. We set this two variables thanks to buttonB and buttonC. There is also <b>alarm_on</b>, a boolean which allows to enable or disable alarm. Each seconds, we call the function [`Alarm(hour, minute)`](samplesOfCode/Alarm.md) which check if current time is equals to alarm time and if the alarm is enable. If it's the case, the alarm starts to ring.
+
 
 
 
@@ -88,11 +85,9 @@ In order to display temperature and humidity, we used a variable <b>display_mode
 
 
 
-### Others features
 
-
-
-
+### Modules used for this project
+In our project, we use several modules. Firstly, to get curent time with an API request, we used `network` to connect the ESP32 to wifi, `urequests` to do the request and  `json` to acces important values of the request. From the module `machine`, we import <b>Timer</b> to get curent time accurate, <b>Pin</b> to use ESP32's GPIO, <b>I2C</b> to use temperature and humidity sensor and <b>PWM</b> to control the buzzer. We also use `time` module, particularly to use <b>sleep()</b> function. The module `neopixel` was used to switch on NeoPixels displays, change their color and so on. Finally, the module `_thread` was used to pause the timer.
 
 
 
