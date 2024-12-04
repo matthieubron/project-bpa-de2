@@ -1,3 +1,13 @@
+##
+#	@brief		Controls a Digital clock that display time 
+#	@details	This file display the current time on Neopixel Leds, and control the brightness depending if the proximity captor detects something
+#	@author		Berman Noam 
+#	@author		Bron Matthieu
+#	@author		Clouard Adam
+#	@version	1.0
+#	@date		01/12/2024
+#
+
 from machine import Timer,Pin,I2C
 import network
 import urequests
@@ -104,7 +114,11 @@ def connect_wifi():
     print("Connecté !")
 
 """
-This function send a request to get the current time and put it in the different variables
+This function sends a request to get the current time and puts it in the different variables
+
+@return		hours_req		the current hour
+@return		minute_req		the courrent minute
+@return		second_req		the current seconde
 """
 def get_time():
     print("Effectuer la requête GET")
@@ -128,7 +142,9 @@ def get_time():
         return None, None, None
 
 """
-This function take care of the incrementation of the time and use display_time to show the values on the digital clock
+This function takes care of the incrementation of the time and uses display_time to show the values on the digital clock
+
+@param _	Identify the pin that triggered the interruption
 """
 def update_time(_):
     global hour,minute,second
@@ -207,21 +223,10 @@ This function display the current time on the digital clock
 """
 def display_time(hour,minute,color_index):
 
-    #Reset the clock by putting all led black corresponds to the number 8 on our device
-
-    #display_number(0,8,5)
-    #display_number(1,8,5)
-    #display_number(2,8,5)
-    #display_number(3,8,5)
-
     turn_off(0,8,0)
     turn_off(1,8,0)
     turn_off(2,8,0)
     turn_off(3,8,0)
-
-    #OR
-
-    #turn_off_simple(np)
 
     display_number(0,hour // 10,color_index)
     display_number(1,hour % 10,color_index)
@@ -230,11 +235,7 @@ def display_time(hour,minute,color_index):
     display_number(3,minute % 10,color_index)
     np.write()
 
-
-#Change the color to display
-
-
-last_press_times = {}  # Dictionnaire pour suivre les derniers temps d'appui de chaque bouton
+last_press_times = {} 
 debounce_time = 200
 
 """
@@ -247,13 +248,11 @@ def handle_debounced(pin, callback):
     global last_press_times
     current_time = time.ticks_ms()
 
-    # Récupérer le dernier temps pour ce bouton, par défaut 0 s'il n'existe pas
     last_time = last_press_times.get(pin, 0)
 
-    # Vérifier si le temps écoulé est suffisant
     if time.ticks_diff(current_time, last_time) > debounce_time:
-        last_press_times[pin] = current_time  # Mettre à jour le dernier temps
-        callback(pin)  # Appeler la fonction associée
+        last_press_times[pin] = current_time  
+        callback(pin) 
 
 """
 This function turn off all the Leds
@@ -262,7 +261,7 @@ This function turn off all the Leds
 @param number				Refers to the number in the dictionnary that corresponds to a segment of Leds
 @param turnoff_color_index	Indicates which color need to be shutdownx²
 """
-def turn_off(neopixel_index,number,turnoff_color_index): #UNE DES DEUX A SUPPRIMER
+def turn_off(neopixel_index,number,turnoff_color_index): 
 
     leds = chiffres_leds[neopixel_index][number]
     for led in leds:
@@ -275,7 +274,7 @@ This function turn off the Leds of the two points
 """
 def turn_off_2points(two_points_index):
 
-    leds = chiffres_leds.get(two_points_index,[]) #[] to avoid the crash if not find it will return []
+    leds = chiffres_leds.get(two_points_index,[]) 
     for led in leds:
         np[led] = (0,0,0)
      
@@ -300,7 +299,7 @@ def increment_second(pin):
     display_time(minute_timer,second_timer,color_index)
 
 def main():
-    #Time request
+ 
     global hour,minute,second,mode
     connect_wifi()
     hour_req,minute_req,second_req = get_time()
