@@ -1,7 +1,7 @@
 # Project BPA DE2 : Clock
 
 ![Clock](Pictures/First_picture_clock.jpeg)
-*Picture of the clock showing ambiant temperature.*
+*Picture of the clock showing current time.*
 
 ## Team Members
 
@@ -48,7 +48,7 @@ For our project, we used :
 To reduce the number of buttons, we decide to create a state machine. We defined 4 different states. The first one is used to <b>display the current time</b>. The second one is used to set an <b>alarm</b>. The third one is used to set a <b>timer</b> and the last one is used to <b>display ambiant temperature and humidity</b>.
 In the code, we use a global variable called <b>mode</b> which takes values between 0 and 3 and it is modified thanks to the function [`statemode()`](samplesOfCode/statemode.md).\
 Depending on this variable
-* We display informations on the curent state with the function [`state()`](samplesOfCode/state.md).
+* We display informations on the current state with the function [`state()`](samplesOfCode/state.md).
 * Buttons A, B and C get different purpose with the function [`configure_buttons()`](samplesOfCode/configure_buttons.md).
 
 
@@ -86,7 +86,7 @@ In order to display temperature and humidity, we used a variable <b>display_mode
 
 
 ### Modules used for this project
-In our project, we use several modules. Firstly, to get curent time with an API request, we used `network` to connect the ESP32 to wifi, `urequests` to do the request and  `json` to access important values of the request. From the module `machine`, we import <b>Timer</b> to get current time accurate, <b>Pin</b> to use ESP32's GPIO, <b>I2C</b> to use temperature and humidity sensor and <b>PWM</b> to control the buzzer. We also use `time` module, particularly to use <b>sleep()</b> function. The module `neopixel` was used to switch on NeoPixels displays, change their color and so on. Finally, the module `_thread` was used to pause the timer.
+In our project, we use several modules. Firstly, to get current time with an API request, we used `network` to connect the ESP32 to wifi, `urequests` to do the request and  `json` to access important values of the request. From the module `machine`, we import <b>Timer</b> to get current time accurate, <b>Pin</b> to use ESP32's GPIO, <b>I2C</b> to use temperature and humidity sensor and <b>PWM</b> to control the buzzer. We also use `time` module, particularly to use <b>sleep()</b> function. The module `neopixel` was used to switch on NeoPixels displays, change their color and so on. Finally, the module `_thread` was used to pause the timer.
 
 
 
@@ -101,7 +101,7 @@ Here is a table summing up use of buttons depending on the current state.
 
 | Button / Mode                 |   M (yellow)  |   L (white) |   A (red)                 |   B (green)       |   C (blue)           |
 | :----:                        | :----:        | :----:      | :----:                    | :----:            | :----:               | 
-| Display curent time           | Mode          | Light       |Stop alarm                 | Change time zone  | -                    |
+| Display current time           | Mode          | Light       |Stop alarm                 | Change time zone  | -                    |
 | Set Alarm                     | Mode          | Light       |Switch On/Off alarm        | Increase hours    | Increase minutes     |
 | Set Timer                     | Mode          | Light       |Start Timer                | Increase minutes  | Increase seconds     |
 | Display Trmperature & humidity| Mode          | Light       |Change temperature/humidity| -                 |      -               |  
