@@ -157,9 +157,6 @@ def update_time(_):
         hour +=1
     if hour >=24:
         hour = 0
-    print(hour)
-    print(minute)
-    print(second)
     display_time(hour,minute,color_index)
 
 """

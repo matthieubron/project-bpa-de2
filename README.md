@@ -99,12 +99,12 @@ In our project, we use several modules. Firstly, to get current time with an API
 
 Here is a table summing up use of buttons depending on the current state.
 
-| Button / Mode                 |   M (yellow)  |   L (white) |   A (red)                 |   B (green)       |   C (blue)           |
+| Button / Mode                 |   M (yellow)  |   L (white) |   A (blue)                |   B (green)       |   C (red)           |
 | :----:                        | :----:        | :----:      | :----:                    | :----:            | :----:               | 
-| Display current time           | Mode          | Light       |Stop alarm                 | Change time zone  | -                    |
-| Set Alarm                     | Mode          | Light       |Switch On/Off alarm        | Increase hours    | Increase minutes     |
-| Set Timer                     | Mode          | Light       |Start Timer                | Increase minutes  | Increase seconds     |
-| Display Trmperature & humidity| Mode          | Light       |Change temperature/humidity| -                 |      -               |  
+| Display current time          | Mode          | Color       |    -                      | Change time zone  | -                    |
+| Set Alarm                     | Mode          | Color       |Switch On/Off alarm        | Increase hours    | Increase minutes     |
+| Set Timer                     | Mode          | Color       |Start Timer                | Increase minutes  | Increase seconds     |
+| Display Trmperature & humidity| Mode          | Color       |Change temperature/humidity| -                 |      -               |  
 
 
 
